@@ -116,6 +116,10 @@ def recordMetrics():
     record('bufferedDatapoints',
            sum([b.size for b in BufferManager.buffers.values()]))
     record('aggregateDatapointsSent', myStats.get('aggregateDatapointsSent', 0))
+    prefix = 'destinations.'
+    aggregator_stats =  [(k,v) for (k,v) in myStats.items() if k.startswith(prefix)]
+    for stat_name, stat_value in aggregator_stats:
+      record(stat_name, stat_value)
 
   # relay metrics
   else:
