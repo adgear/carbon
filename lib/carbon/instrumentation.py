@@ -9,7 +9,7 @@ from carbon.conf import settings
 
 
 stats = {}
-HOSTNAME = socket.gethostname().replace('.','_')
+HOSTNAME = socket.getfqdn().replace('.','_')
 PAGESIZE = os.sysconf('SC_PAGESIZE')
 rusage = getrusage(RUSAGE_SELF)
 lastUsage = rusage.ru_utime + rusage.ru_stime
