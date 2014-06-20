@@ -21,6 +21,7 @@ class CarbonClientProtocol(Int32StringReceiver):
     self.destinationName = self.factory.destinationName
     self.queuedUntilReady = 'destinations.%s.queuedUntilReady' % self.destinationName
     self.sent = 'destinations.%s.sent' % self.destinationName
+    self.queueSize = 'destinations.%s.queueSize' % self.destinationName
 
     self.factory.connectionMade.callback(self)
     self.factory.connectionMade = Deferred()
@@ -69,6 +70,7 @@ class CarbonClientProtocol(Int32StringReceiver):
       self._sendDatapoints(datapoints)
 
       queueSize = self.factory.queueSize
+      instrumentation.set(self.queueSize, queueSize)
       if (self.factory.queueFull.called and
           queueSize < SEND_QUEUE_LOW_WATERMARK):
         self.factory.queueHasSpace.callback(queueSize)

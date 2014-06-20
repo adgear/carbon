@@ -29,12 +29,14 @@ def increment(stat, increase=1):
   except KeyError:
     stats[stat] = increase
 
-
 def append(stat, value):
   try:
     stats[stat].append(value)
   except KeyError:
     stats[stat] = [value]
+
+def set(stat, value):
+    stats[stat] = value
 
 
 def getCpuUsage():
