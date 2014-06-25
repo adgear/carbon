@@ -142,7 +142,7 @@ class CarbonClientFactory(ReconnectingClientFactory):
 
   def takeSomeFromQueue(self):
     datapoints = self.queue[:settings.MAX_DATAPOINTS_PER_MESSAGE]
-    self.queue = self.queue[settings.MAX_DATAPOINTS_PER_MESSAGE:]
+    del self.queue[:settings.MAX_DATAPOINTS_PER_MESSAGE]
     return datapoints
 
   def checkQueue(self):
