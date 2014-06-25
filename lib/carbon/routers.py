@@ -63,12 +63,18 @@ class ConsistentHashingRouter(DatapointRouter):
   def getDestinations(self, metric):
     key = self.getKey(metric)
 
-    for count,node in enumerate(self.ring.get_nodes(key)):
-      if count == self.replication_factor:
-        return
-      (server, instance) = node
+    # bypass hashing stuff if only one destination node
+    if len(self.ring.nodes) == 1:
+      (_, (server, instance)) = self.ring.ring[0]
       port = self.instance_ports[ (server, instance) ]
       yield (server, port, instance)
+    else:
+      for count,node in enumerate(self.ring.get_nodes(key)):
+        if count == self.replication_factor:
+          return
+        (server, instance) = node
+        port = self.instance_ports[ (server, instance) ]
+        yield (server, port, instance)
 
   def getKey(self, metric):
     return metric
