@@ -107,19 +107,23 @@ def writeCachedDataPoints():
         dbDir = dirname(dbFilePath)
         try:
             if not exists(dbDir):
-                os.makedirs(dbDir, 0755)
+                os.makedirs(dbDir)
         except OSError, e:
             log.err("%s" % e)
         log.creates("creating database file %s (archive=%s xff=%s agg=%s)" %
                     (dbFilePath, archiveConfig, xFilesFactor, aggregationMethod))
-        whisper.create(
-            dbFilePath,
-            archiveConfig,
-            xFilesFactor,
-            aggregationMethod,
-            settings.WHISPER_SPARSE_CREATE,
-            settings.WHISPER_FALLOCATE_CREATE)
-        instrumentation.increment('creates')
+        try:
+            whisper.create(
+                dbFilePath,
+                archiveConfig,
+                xFilesFactor,
+                aggregationMethod,
+                settings.WHISPER_SPARSE_CREATE,
+                settings.WHISPER_FALLOCATE_CREATE)
+            instrumentation.increment('creates')
+        except:
+            log.err("Error creating %s" % (dbFilePath))
+            continue
       # If we've got a rate limit configured lets makes sure we enforce it
       if UPDATE_BUCKET:
         UPDATE_BUCKET.drain(1, blocking=True)
@@ -172,7 +176,11 @@ def reloadAggregationSchemas():
 
 def shutdownModifyUpdateSpeed():
     try:
-        settings.MAX_UPDATES_PER_SECOND = settings.MAX_UPDATES_PER_SECOND_ON_SHUTDOWN
+        shut = settings.MAX_UPDATES_PER_SECOND_ON_SHUTDOWN
+        if UPDATE_BUCKET:
+          UPDATE_BUCKET.setCapacityAndFillRate(shut,shut)
+        if CREATE_BUCKET:
+          CREATE_BUCKET.setCapacityAndFillRate(shut,shut)
         log.msg("Carbon shutting down.  Changed the update rate to: " + str(settings.MAX_UPDATES_PER_SECOND_ON_SHUTDOWN))
     except KeyError:
         log.msg("Carbon shutting down.  Update rate not changed")

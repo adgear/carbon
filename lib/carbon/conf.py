@@ -254,6 +254,11 @@ class CarbonCacheOptions(usage.Options):
                 logdir = settings.LOG_DIR
                 if not isdir(logdir):
                     os.makedirs(logdir)
+                    if settings.USER:
+                        # We have not yet switched to the specified user,
+                        # but that user must be able to create files in this
+                        # directory.
+                        os.chown(logdir, self.parent["uid"], self.parent["gid"])
                 log.logToDir(logdir)
 
         if self["whitelist"] is None:
@@ -402,6 +407,9 @@ def get_default_parser(usage="%prog [options] <start|stop|status>"):
     parser.add_option(
         "--debug", action="store_true",
         help="Run in the foreground, log to stdout")
+    parser.add_option(
+        "--nodaemon", action="store_true",
+        help="Run in the foreground")
     parser.add_option(
         "--profile",
         help="Record performance profile data to the given file")

@@ -62,7 +62,7 @@ def run_twistd_plugin(filename):
     except:
         pass
 
-    if options.debug:
+    if options.debug or options.nodaemon:
         twistd_options.extend(["--nodaemon"])
     if options.profile:
         twistd_options.append("--profile")
@@ -79,7 +79,7 @@ def run_twistd_plugin(filename):
 
     for option_name, option_value in vars(options).items():
         if (option_value is not None and
-            option_name not in ("debug", "profile", "pidfile", "umask")):
+            option_name not in ("debug", "profile", "pidfile", "umask", "nodaemon")):
             twistd_options.extend(["--%s" % option_name.replace("_", "-"),
                                    option_value])
 
@@ -194,6 +194,12 @@ class TokenBucket(object):
         self._tokens -= cost
         return True
       return False
+
+  def setCapacityAndFillRate(self, new_capacity, new_fill_rate):
+    delta = float(new_capacity) - self.capacity
+    self.capacity = float(new_capacity)
+    self.fill_rate = float(new_fill_rate)
+    self._tokens = delta + self._tokens
 
   @property
   def tokens(self):

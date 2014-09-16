@@ -29,6 +29,13 @@ def increment(stat, increase=1):
   except KeyError:
     stats[stat] = increase
 
+def max(stat, newval):
+  try:
+    if stats[stat] < newval:
+      stats[stat] = newval
+  except KeyError:
+    stats[stat] = newval
+
 def append(stat, value):
   try:
     stats[stat].append(value)
@@ -131,6 +138,8 @@ def recordMetrics():
 
   # common metrics
   record('metricsReceived', myStats.get('metricsReceived', 0))
+  record('blacklistMatches', myStats.get('blacklistMatches', 0))
+  record('whitelistRejects', myStats.get('whitelistRejects', 0))
   record('cpuUsage', getCpuUsage())
   try: # This only works on Linux
     record('memUsage', getMemUsage())
