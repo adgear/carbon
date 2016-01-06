@@ -36,7 +36,7 @@ class _MetricCache(defaultdict):
       t = time.time()
       queue = sorted(self.counts, key=lambda x: x[1])
       if settings.LOG_CACHE_QUEUE_SORTS:
-        log.debug("Sorted %d cache queues in %.6f seconds" % (len(queue), time.time() - t))
+        log.msg("Sorted %d cache queues in %.6f seconds" % (len(queue), time.time() - t))
       while queue:
         yield queue.pop()[0]
 
@@ -45,7 +45,7 @@ class _MetricCache(defaultdict):
     self[metric].append(datapoint)
     if self.isFull():
       log.msg("MetricCache is full: self.size=%d" % self.size)
-      state.events.cacheFull()
+      events.cacheFull()
 
   def isFull(self):
     # Short circuit this test if there is no max cache size, then we don't need
@@ -55,7 +55,10 @@ class _MetricCache(defaultdict):
   def pop(self, metric=None):
     if not self:
       raise KeyError(metric)
+    elif metric:
+      datapoints = (metric, super(_MetricCache, self).pop(metric))
     elif not metric and self.method == "max":
+      # TODO: [jssjr 2015-04-24] This is O(n^2) and suuuuuper slow.
       metric = max(self.items(), key=lambda x: len(x[1]))[0]
       datapoints = (metric, super(_MetricCache, self).pop(metric))
     elif not metric and self.method == "naive":
@@ -66,6 +69,10 @@ class _MetricCache(defaultdict):
       popped = super(_MetricCache, self).pop(metric)
       ordered = sorted(dict(popped).items(), key=lambda x: x[0])
       datapoints = (metric, deque(ordered))
+      # Adjust size counter if we've dropped multiple identical timestamps
+      dropped = len(popped) - len(datapoints[1])
+      if dropped > 0:
+        self.size -= dropped
     self.size -= len(datapoints[1])
     return datapoints
 
@@ -80,4 +87,4 @@ MetricCache = _MetricCache(method=settings.CACHE_WRITE_STRATEGY)
 
 
 # Avoid import circularities
-from carbon import log, state
+from carbon import log, state, events

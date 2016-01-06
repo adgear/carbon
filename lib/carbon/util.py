@@ -2,6 +2,7 @@ import copy
 import os
 import pwd
 import sys
+import __builtin__
 
 from os.path import abspath, basename, dirname
 try:
@@ -48,8 +49,8 @@ def run_twistd_plugin(filename):
       return
 
     # This isn't as evil as you might think
-    __builtins__["instance"] = options.instance
-    __builtins__["program"] = program
+    __builtin__.instance = options.instance
+    __builtin__.program = program
 
     # Then forward applicable options to either twistd or to the plugin itself.
     twistd_options = ["--no_save"]
@@ -65,11 +66,15 @@ def run_twistd_plugin(filename):
     if options.debug or options.nodaemon:
         twistd_options.extend(["--nodaemon"])
     if options.profile:
-        twistd_options.append("--profile")
+        twistd_options.extend(["--profile", options.profile])
+    if options.profiler:
+        twistd_options.extend(["--profiler", options.profiler])
     if options.pidfile:
         twistd_options.extend(["--pidfile", options.pidfile])
     if options.umask:
         twistd_options.extend(["--umask", options.umask])
+    if options.syslog:
+        twistd_options.append("--syslog")
 
     # Now for the plugin-specific options.
     twistd_options.append(program)
@@ -79,7 +84,7 @@ def run_twistd_plugin(filename):
 
     for option_name, option_value in vars(options).items():
         if (option_value is not None and
-            option_name not in ("debug", "profile", "pidfile", "umask", "nodaemon")):
+            option_name not in ("debug", "profile", "profiler", "pidfile", "umask", "nodaemon", "syslog")):
             twistd_options.extend(["--%s" % option_name.replace("_", "-"),
                                    option_value])
 

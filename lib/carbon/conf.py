@@ -32,16 +32,20 @@ defaults = dict(
   USER="",
   MAX_CACHE_SIZE=float('inf'),
   MAX_UPDATES_PER_SECOND=500,
+  MAX_UPDATES_PER_SECOND_ON_SHUTDOWN=1000,
   MAX_CREATES_PER_MINUTE=float('inf'),
   LINE_RECEIVER_INTERFACE='0.0.0.0',
   LINE_RECEIVER_PORT=2003,
+  LINE_RECEIVER_BACKLOG=1024,
   ENABLE_UDP_LISTENER=False,
   UDP_RECEIVER_INTERFACE='0.0.0.0',
   UDP_RECEIVER_PORT=2003,
   PICKLE_RECEIVER_INTERFACE='0.0.0.0',
   PICKLE_RECEIVER_PORT=2004,
+  PICKLE_RECEIVER_BACKLOG=1024,
   CACHE_QUERY_INTERFACE='0.0.0.0',
   CACHE_QUERY_PORT=7002,
+  CACHE_QUERY_BACKLOG=1024,
   LOG_UPDATES=True,
   LOG_CACHE_HITS=True,
   LOG_CACHE_QUEUE_SORTS=True,
@@ -64,6 +68,7 @@ defaults = dict(
   MANHOLE_PUBLIC_KEY="",
   RELAY_METHOD='rules',
   REPLICATION_FACTOR=1,
+  DIVERSE_REPLICAS=False,
   DESTINATIONS=[],
   USE_FLOW_CONTROL=True,
   USE_INSECURE_UNPICKLER=False,
@@ -408,11 +413,17 @@ def get_default_parser(usage="%prog [options] <start|stop|status>"):
         "--debug", action="store_true",
         help="Run in the foreground, log to stdout")
     parser.add_option(
+        "--syslog", action="store_true",
+        help="Write logs to syslog")
+    parser.add_option(
         "--nodaemon", action="store_true",
         help="Run in the foreground")
     parser.add_option(
         "--profile",
         help="Record performance profile data to the given file")
+    parser.add_option(
+        "--profiler",
+        help="Specify the profiler to use")
     parser.add_option(
         "--pidfile", default=None,
         help="Write pid to the given file")
